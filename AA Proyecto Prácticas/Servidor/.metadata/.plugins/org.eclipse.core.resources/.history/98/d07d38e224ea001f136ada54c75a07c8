@@ -1,0 +1,9 @@
+package com.gasolinera.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.gasolinera.clases.Combustible;
+
+public interface CombustibleRepository extends JpaRepository<Combustible, Integer> {
+	boolean existsById(Integer id);
+}

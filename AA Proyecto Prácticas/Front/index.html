@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="icono gas.png">
+    <title>Gestión de Surtidores y Combustibles</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 30px;
+        }
+
+        input,
+        select,
+        button {
+            margin: 5px;
+            padding: 10px;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        li {
+            background: #f4f4f4;
+            margin: 10px;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .delete-btn {
+            background: red;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .add-btn {
+            background: green;
+            color: white;
+            border: none;
+            padding: 10px;
+            cursor: pointer;
+        }
+
+        .assign-btn {
+            background: blue;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .details-btn {
+            background: purple;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            cursor: pointer;
+        }
+
+        .details {
+            text-align: left;
+            background: #e9e9e9;
+            padding: 10px;
+            margin-top: 5px;
+            border-radius: 5px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h2>Gestión de Surtidores</h2>
+    <input type="text" id="surtidorNombre" placeholder="Nombre del surtidor">
+    <button class="add-btn" onclick="agregarSurtidor()">➕ Agregar</button>
+
+    <ul id="listaSurtidores"></ul>
+
+    <h2>Asignar Combustible a un Surtidor</h2>
+    <select id="surtidorSelect"></select>
+    <select id="combustibleSelect"></select>
+    <button class="assign-btn" onclick="asignarCombustible()">Asignar</button>
+    <br>
+    <br>
+    <a href="combustibles.html">Ver Precios Combustibles</a>
+    <a href="suministros.html" target="_blank">Registrar un suministro</a>
+
+    <script>
+        const API_SURTIDORES = "http://localhost:8080/surtidores";
+        const API_COMBUSTIBLES = "http://localhost:8080/combustibles";
+        const API_ASIGNACION = "http://localhost:8080/surtidores-combustibles";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarSurtidores();
+            cargarCombustibles();
+        });
+
+        function cargarSurtidores() {
+            fetch(API_SURTIDORES)
+                .then(response => response.json())
+                .then(data => {
+                    const lista = document.getElementById("listaSurtidores");
+                    const select = document.getElementById("surtidorSelect");
+                    lista.innerHTML = "";
+                    select.innerHTML = "<option value=''>Seleccione un surtidor</option>";
+                    data.forEach(surtidor => {
+                        const li = document.createElement("li");
+                        li.innerHTML = `
+                            <span><b>${surtidor.nombre}</b></span> 
+                            <button class="details-btn" onclick="verDetalles(${surtidor.id}, this)">Ver Detalles</button>
+                            <button class="delete-btn" onclick="eliminarSurtidor(${surtidor.id})">❌ Eliminar</button>
+                            <div class="details" id="detalles-${surtidor.id}"></div>
+                        `;
+                        lista.appendChild(li);
+
+                        const option = document.createElement("option");
+                        option.value = surtidor.id;
+                        option.textContent = surtidor.nombre;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error al cargar surtidores:", error));
+        }
+
+        function cargarCombustibles() {
+            fetch(API_COMBUSTIBLES)
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById("combustibleSelect");
+                    select.innerHTML = "<option value=''>Seleccione un combustible</option>";
+                    data.forEach(combustible => {
+                        const option = document.createElement("option");
+                        option.value = combustible.id;
+                        option.textContent = combustible.nombre;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error al cargar combustibles:", error));
+        }
+
+        function agregarSurtidor() {
+            const nombre = document.getElementById("surtidorNombre").value;
+            if (!nombre.trim()) return alert("Ingrese un nombre válido.");
+
+            fetch(API_SURTIDORES, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ nombre })
+            })
+                .then(response => response.json())
+                .then(() => {
+                    document.getElementById("surtidorNombre").value = "";
+                    cargarSurtidores();
+                })
+                .catch(error => console.error("Error al agregar surtidor:", error));
+        }
+
+        function eliminarSurtidor(id) {
+            fetch(`${API_SURTIDORES}/${id}`, { method: "DELETE" })
+                .then(() => cargarSurtidores())
+                .catch(error => console.error("Error al eliminar surtidor:", error));
+        }
+
+        function asignarCombustible() {
+            const surtidorId = document.getElementById("surtidorSelect").value;
+            const combustibleId = document.getElementById("combustibleSelect").value;
+
+            if (!surtidorId || !combustibleId) {
+                return alert("Seleccione un surtidor y un combustible.");
+            }
+
+            // Validamos si la gasolina ya está asignada antes de enviar la solicitud
+            fetch(`${API_ASIGNACION}/${surtidorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const combustiblesAsignados = data.map(item => item.combustible.id);
+
+                    if (combustiblesAsignados.includes(parseInt(combustibleId))) {
+                        alert("⚠️ Este combustible ya está asignado a este surtidor.");
+                    } else {
+                        // Si no está asignado, proceder con la solicitud POST
+                        fetch(`${API_ASIGNACION}/${surtidorId}/${combustibleId}`, { method: "POST" })
+                            .then(response => response.json())
+                            .then(() => {
+                                alert("✅ Combustible asignado con éxito");
+                                verDetalles(surtidorId, null);
+                            })
+                            .catch(error => console.error("Error al asignar combustible:", error));
+                    }
+                })
+                .catch(error => console.error("Error al verificar combustibles asignados:", error));
+        }
+
+        function verDetalles(surtidorId, boton) {
+            const detallesDiv = document.getElementById(`detalles-${surtidorId}`);
+
+            if (detallesDiv.style.display === "none" || detallesDiv.innerHTML === "") {
+                fetch(`${API_ASIGNACION}/${surtidorId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        let contenido = "<b>Combustibles Disponibles:</b><ul>";
+                        data.forEach(item => {
+                            contenido += `<li>${item.combustible.nombre}</li>`;
+                        });
+                        contenido += "</ul>";
+                        detallesDiv.innerHTML = contenido;
+                        detallesDiv.style.display = "block";
+                        if (boton) boton.textContent = "Ocultar Detalles";
+                    })
+                    .catch(error => console.error("Error al obtener detalles del surtidor:", error));
+            } else {
+                detallesDiv.style.display = "none";
+                if (boton) boton.textContent = "Ver Detalles";
+            }
+        }
+    </script>
+
+
+</body>
+
+</html>

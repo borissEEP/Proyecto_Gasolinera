@@ -1,0 +1,58 @@
+package com.gasolinera.controllers;
+
+import com.gasolinera.clases.Suministro;
+import com.gasolinera.clases.Tanque;
+import com.gasolinera.repository.SuministroRepository;
+import com.gasolinera.repository.TanqueRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/suministros")
+public class SuministroController {
+
+    @Autowired
+    private SuministroRepository suministroRepository;
+
+    @Autowired
+    private TanqueRepository tanqueRepository;
+
+    // Obtener todos los suministros
+    @GetMapping
+    public List<Suministro> getAllSuministros() {
+        return suministroRepository.findAll();
+    }
+    
+    @PostMapping
+    public ResponseEntity<Suministro> createSuministro(@RequestBody Suministro suministro) {
+        // Buscar el tanque correspondiente al combustible
+        Tanque tanque = tanqueRepository.findByCombustible(suministro.getCombustible());
+
+        if (tanque == null || tanque.getLitrosDisponibles() < suministro.getLitrosServidos()) {
+            return ResponseEntity.badRequest().build(); // No hay suficiente combustible
+        }
+
+        // Convertir BigDecimal a double y realizar la multiplicación
+        double precio = suministro.getCombustible().getPrecio().doubleValue();
+        double importe = precio * suministro.getLitrosServidos();
+        
+        suministro.setImporte(importe);
+        suministro.setFecha(LocalDateTime.now());
+
+        // Actualizar tanque después de la venta
+        tanque.setLitrosDisponibles(tanque.getLitrosDisponibles() - suministro.getLitrosServidos());
+        tanqueRepository.save(tanque);
+
+        // Guardar el suministro
+        Suministro nuevoSuministro = suministroRepository.save(suministro);
+        return ResponseEntity.ok(nuevoSuministro);
+    }
+
+    
+}

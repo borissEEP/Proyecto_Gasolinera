@@ -1,0 +1,51 @@
+ body {
+     font-family: Arial, sans-serif;
+     margin: 20px;
+ }
+
+ table {
+     width: 100%;
+     border-collapse: collapse;
+     margin-top: 10px;
+ }
+
+ th, td {
+     border: 1px solid #ddd;
+     padding: 8px;
+     text-align: left;
+ }
+
+ th {
+     background-color: #f4f4f4;
+ }
+
+ h2 {
+     margin-top: 20px;
+ }
+
+ .container {
+     max-width: 800px;
+     margin: auto;
+ }
+
+ button {
+     padding: 10px;
+     margin-top: 10px;
+     cursor: pointer;
+ }
+
+ .delete-btn {
+     background-color: red;
+     color: white;
+     border: none;
+     padding: 5px;
+     cursor: pointer;
+ }
+
+ .edit-btn {
+     background-color: blue;
+     color: white;
+     border: none;
+     padding: 5px;
+     cursor: pointer;
+ }

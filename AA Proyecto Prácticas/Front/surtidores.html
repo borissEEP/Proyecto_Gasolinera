@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="surtidores.css">
+    <link rel="icon" href="icono gas.png">
+    <title>Gestión de Surtidores</title>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Gestión de Surtidores</h1>
+
+        <h2>Lista de Surtidores</h2>
+        <table id="tablaSurtidores">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Nombre</th>
+                    <th>Combustible</th>
+                    <th>Precio €</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+
+        <h2>Dar de Alta un Surtidor</h2>
+        <form id="formSurtidor">
+            <label>Nombre:</label>
+            <input type="text" id="nombreSurtidor" required>
+            <label>Combustible:</label>
+            <select id="combustibleSurtidor"></select>
+            <button type="submit">Agregar Surtidor</button>
+        </form>
+
+        <h2>Modificar un Surtidor</h2>
+        <form id="formEditarSurtidor">
+            <label>ID:</label>
+            <input type="number" id="editSurtidorId" required>
+            <label>Nuevo Nombre:</label>
+            <input type="text" id="editNombreSurtidor">
+            <label>Nuevo Combustible:</label>
+            <select id="editCombustibleSurtidor"></select>
+            <button type="submit">Actualizar Surtidor</button>
+        </form>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

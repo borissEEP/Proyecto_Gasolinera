@@ -1,0 +1,33 @@
+package com.gasolinera.controllers;
+
+import com.gasolinera.clases.Suministro;
+import com.gasolinera.clases.Tanque;
+import com.gasolinera.repository.SuministroRepository;
+import com.gasolinera.repository.TanqueRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+import java.util.List;
+
+@RestController
+@RequestMapping("/suministros")
+public class SuministroController {
+
+    @Autowired
+    private SuministroRepository suministroRepository;
+
+    @Autowired
+    private TanqueRepository tanqueRepository;
+
+    // Obtener todos los suministros
+    @GetMapping
+    public List<Suministro> getAllSuministros() {
+        return suministroRepository.findAll();
+    }
+
+    // Crear un nuevo suministro (venta de combustible)
+    
+}

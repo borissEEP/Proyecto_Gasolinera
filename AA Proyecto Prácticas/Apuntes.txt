@@ -1,0 +1,5 @@
+Crea los modelos en Java que representen esos datos.
+Configura la lógica para gestionar los surtidores y tanques.
+Agrega la lógica para registrar los suministros y actualizar los tanques.
+Implementa la funcionalidad del reporte para los 25 suministros.
+Diseña la interfaz web para interactuar con la aplicación.

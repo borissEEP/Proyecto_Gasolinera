@@ -1,0 +1,77 @@
+package com.gasolinera.controllers;
+
+import com.gasolinera.clases.Suministro;
+import com.gasolinera.clases.Surtidor;
+import com.gasolinera.repository.SuministroRepository;
+import com.gasolinera.repository.SurtidorRepository;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.net.URI;
+import java.util.List;
+import java.util.Optional;
+
+@CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/surtidores")
+public class SurtidorController {
+
+	private final SurtidorRepository surtidorRepository;
+	private final SuministroRepository suministroRepository;
+
+	public SurtidorController(SurtidorRepository surtidorRepository, SuministroRepository suministroRepository) {
+		this.surtidorRepository = surtidorRepository;
+		this.suministroRepository = suministroRepository;
+	}
+
+	@GetMapping
+	public List<Surtidor> obtenerSurtidores() {
+		return surtidorRepository.findAll();
+	}
+
+	@GetMapping("/{id}")
+	public Optional<Surtidor> obtenerSurtidorPorId(@PathVariable Integer id) {
+		return surtidorRepository.findById(id);
+	}
+
+	@PostMapping
+	public ResponseEntity<Surtidor> crearSurtidor(@RequestBody Surtidor surtidor) {
+		Surtidor nuevoSurtidor = surtidorRepository.save(surtidor);
+		URI location = URI.create("/surtidores/" + nuevoSurtidor.getId());
+		return ResponseEntity.created(location).body(nuevoSurtidor);
+	}
+
+	@PutMapping("/{id}")
+	public Surtidor actualizarSurtidor(@PathVariable Integer id, @RequestBody Surtidor surtidor) {
+		if (surtidorRepository.existsById(id)) {
+			surtidor.setId(id);
+			return surtidorRepository.save(surtidor);
+		}
+		return null;
+	}
+
+	@DeleteMapping("/{id}")
+	public ResponseEntity<String> borrarSurtidor(@PathVariable Integer id) {
+		Optional<Surtidor> surtidorOptional = surtidorRepository.findById(id);
+
+		if (surtidorOptional.isEmpty()) {
+			return ResponseEntity.notFound().build();
+		}
+
+		Surtidor surtidor = surtidorOptional.get();
+
+		// ✅ 1. Desvincular los suministros del surtidor (SET NULL)
+		List<Suministro> suministros = suministroRepository.findBySurtidorId(id);
+		for (Suministro suministro : suministros) {
+			suministro.setSurtidor(null);
+			suministroRepository.save(suministro);
+		}
+
+		// ✅ 2. Ahora sí eliminar el surtidor sin afectar el historial
+		surtidorRepository.deleteById(id);
+
+		return ResponseEntity.noContent().build();
+	}
+
+}

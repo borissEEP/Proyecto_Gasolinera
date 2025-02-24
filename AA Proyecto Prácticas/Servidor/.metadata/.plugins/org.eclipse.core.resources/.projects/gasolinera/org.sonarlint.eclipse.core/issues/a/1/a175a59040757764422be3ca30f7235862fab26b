@@ -1,0 +1,11 @@
+
+…
+java:S3824ƒ"IReplace this "Map.containsKey()" with a call to "Map.computeIfPresent()".8şşÚ£Ğ2b 091157b1400a9aa62ebe6fe6a3a307e6h
+y
+java:S1144 ">Remove this unused private "SuministroController" constructor.8ı¹‡¢Ï2b 778089c0800c960d0a3c833b7417309dh
+Z
+java:S3751b"Make this method non "private".8êïÜ¥Ï2b 50b32cdfb6fa533863264528cd5b40a5h
+Z
+java:S3751\"Make this method non "private".8œŒÙ¥Ï2b 9e230fcecd2a7ea1b11bf2d717939a84h
+[
+java:S3751•"Make this method non "private".8óÁÅ£Ï2b 83ded78f1edb9a4a0ee1b4bde76ee037h

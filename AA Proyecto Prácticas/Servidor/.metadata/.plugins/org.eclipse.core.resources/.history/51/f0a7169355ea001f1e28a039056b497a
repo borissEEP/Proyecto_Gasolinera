@@ -1,0 +1,9 @@
+package com.gasolinera.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import com.gasolinera.clases.Tanque;
+
+public interface TanqueRepository extends JpaRepository<Tanque, Integer> {
+
+}

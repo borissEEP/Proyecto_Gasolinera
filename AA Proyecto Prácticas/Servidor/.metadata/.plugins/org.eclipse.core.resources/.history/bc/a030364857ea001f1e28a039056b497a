@@ -1,0 +1,31 @@
+package com.gasolinera.controllers;
+
+import com.gasolinera.clases.Combustible;
+import com.gasolinera.repository.CombustibleRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/combustibles")
+public class CombustibleController {
+
+    @Autowired
+    private CombustibleRepository combustibleRepository;
+
+    // Obtener todos los combustibles
+    @GetMapping
+    public List<Combustible> getAllCombustibles() {
+        return combustibleRepository.findAll();
+    }
+
+    // Obtener un combustible por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Combustible> getCombustibleById(@PathVariable Long id) {
+        Optional<Combustible> combustible = combustibleRepository.findById(id);
+        return combustible.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+}

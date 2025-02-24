@@ -1,0 +1,46 @@
+package com.gasolinera.clases;
+
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
+
+@Entity
+public class Suministro {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "surtidor_id")
+    private Surtidor surtidor;
+
+    @ManyToOne
+    @JoinColumn(name = "combustible_id")
+    private Combustible combustible;
+
+    private LocalDateTime fecha;
+    private int litrosServidos;
+    private BigDecimal importe;
+
+    // Constructor vacío
+    public Suministro() {}
+
+    // Getters y Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Surtidor getSurtidor() { return surtidor; }
+    public void setSurtidor(Surtidor surtidor) { this.surtidor = surtidor; }
+
+    public Combustible getCombustible() { return combustible; }
+    public void setCombustible(Combustible combustible) { this.combustible = combustible; }
+
+    public LocalDateTime getFecha() { return fecha; }
+    public void setFecha(LocalDateTime fecha) { this.fecha = fecha; }
+
+    public int getLitrosServidos() { return litrosServidos; }
+    public void setLitrosServidos(int litrosServidos) { this.litrosServidos = litrosServidos; }
+
+    public BigDecimal getImporte() { return importe; }
+    public void setImporte(BigDecimal importe) { this.importe = importe; }
+}

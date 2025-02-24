@@ -1,0 +1,38 @@
+package com.gasolinera.clases;
+
+import jakarta.persistence.*;
+import java.util.List;
+
+@Entity
+public class Surtidor {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String nombre;
+    private boolean activo;
+
+    @OneToMany(mappedBy = "surtidor", cascade = CascadeType.ALL)
+    private List<Suministro> suministros;
+
+    @OneToMany(mappedBy = "surtidor", cascade = CascadeType.ALL)
+    private List<SurtidorCombustible> combustibles;
+
+    // Constructor vacío
+    public Surtidor() {}
+
+    // Getters y Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getNombre() { return nombre; }
+    public void setNombre(String nombre) { this.nombre = nombre; }
+
+    public boolean isActivo() { return activo; }
+    public void setActivo(boolean activo) { this.activo = activo; }
+
+    public List<Suministro> getSuministros() { return suministros; }
+    public void setSuministros(List<Suministro> suministros) { this.suministros = suministros; }
+
+    public List<SurtidorCombustible> getCombustibles() { return combustibles; }
+    public void setCombustibles(List<SurtidorCombustible> combustibles) { this.combustibles = combustibles; }
+}

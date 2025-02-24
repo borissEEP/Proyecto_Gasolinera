@@ -1,0 +1,54 @@
+package com.gasolinera.clases;
+
+import java.util.List;
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "surtidor")
+public class Surtidor {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Integer id;
+    private String nombre;
+
+    @ManyToMany
+    @JoinTable(
+        name = "surtidor_combustible",
+        joinColumns = @JoinColumn(name = "surtidor_id"),
+        inverseJoinColumns = @JoinColumn(name = "combustible_id")
+    )
+    private List<Combustible> combustibles;
+
+    public Surtidor() {
+    }
+
+    public Surtidor(String nombre, List<Combustible> combustibles) {
+        this.nombre = nombre;
+        this.combustibles = combustibles;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getNombre() {
+        return nombre;
+    }
+
+    public void setNombre(String nombre) {
+        this.nombre = nombre;
+    }
+
+    public List<Combustible> getCombustibles() {
+        return combustibles;
+    }
+
+    public void setCombustibles(List<Combustible> combustibles) {
+        this.combustibles = combustibles;
+    }
+}

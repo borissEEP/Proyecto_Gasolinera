@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="suministros.css">
+    <link rel="icon" href="icono gas.png">
+    <title>Gestión de Suministros</title>
+</head>
+<body>
+
+    <h2>Registro de Suministros</h2>
+
+    <select id="surtidorSelect"></select>
+    <select id="combustibleSelect"></select>
+    <input placeholder="Litros a suministrar" type="number" id="litrosInput" placeholder="Cantidad de litros" min="1">
+    <button onclick="registrarSuministro()">Registrar Suministro</button>
+
+    <h3>Lista de Suministros</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>Surtidor</th>
+                <th>Combustible</th>
+                <th>Litros</th>
+                <th>Importe (€)</th>
+                <th>Fecha</th>
+            </tr>
+        </thead>
+        <tbody id="tablaSuministros"></tbody>
+    </table>
+
+    <button id="reporteBtn" class="disabled" onclick="generarReporte()" disabled>Generar Reporte</button>
+
+    <h3>Reporte</h3>
+    <div id="reporteDatos"></div>
+
+    <script>
+        const API_SURTIDORES = "http://localhost:8080/surtidores";
+        const API_COMBUSTIBLES = "http://localhost:8080/combustibles";
+        const API_SUMINISTROS = "http://localhost:8080/suministros";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarSurtidores();
+            cargarCombustibles();
+            cargarSuministros();
+        });
+
+        function cargarSurtidores() {
+            fetch(API_SURTIDORES)
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById("surtidorSelect");
+                    select.innerHTML = "<option value=''>Seleccione un surtidor</option>";
+                    data.forEach(surtidor => {
+                        const option = document.createElement("option");
+                        option.value = surtidor.id;
+                        option.textContent = surtidor.nombre;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error al cargar surtidores:", error));
+        }
+
+        function cargarCombustibles() {
+            fetch(API_COMBUSTIBLES)
+                .then(response => response.json())
+                .then(data => {
+                    const select = document.getElementById("combustibleSelect");
+                    select.innerHTML = "<option value=''>Seleccione un combustible</option>";
+                    data.forEach(combustible => {
+                        const option = document.createElement("option");
+                        option.value = combustible.id;
+                        option.textContent = `${combustible.nombre}`;
+                        select.appendChild(option);
+                    });
+                })
+                .catch(error => console.error("Error al cargar combustibles:", error));
+        }
+
+       function registrarSuministro() {
+            const surtidorId = document.getElementById("surtidorSelect").value;
+            const combustibleId = document.getElementById("combustibleSelect").value;
+            const litros = document.getElementById("litrosInput").value;
+
+            if (!surtidorId || !combustibleId || litros <= 0) {
+                return alert("Complete todos los campos correctamente.");
+            }
+
+            // Validar si el surtidor tiene el combustible disponible
+            fetch(`http://localhost:8080/surtidores-combustibles/${surtidorId}`)
+                .then(response => response.json())
+                .then(data => {
+                    const combustiblesAsignados = data.map(item => item.combustible.id);
+
+                    if (!combustiblesAsignados.includes(parseInt(combustibleId))) {
+                        alert("⚠️ Error: Este surtidor no tiene el tipo de combustible seleccionado.");
+                        return;
+                    }
+
+                    // Si el combustible está disponible en el surtidor, proceder con la venta
+                    fetch(API_SUMINISTROS, {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            surtidor: { id: surtidorId },
+                            combustible: { id: combustibleId },
+                            cantidadLitros: parseFloat(litros)
+                        })
+                    })
+                        .then(response => response.json())
+                        .then(() => {
+                            alert("✅ Suministro registrado con éxito.");
+                            cargarSuministros();
+                        })
+                        .catch(error => console.error("Error al registrar suministro:", error));
+
+                })
+                .catch(error => console.error("Error al verificar combustibles del surtidor:", error));
+        }
+
+        // 📌 Cargar suministros en la tabla
+        function cargarSuministros() {
+            fetch(API_SUMINISTROS)
+                .then(response => response.json())
+                .then(data => {
+                    const tabla = document.getElementById("tablaSuministros");
+                    tabla.innerHTML = "";
+
+                    data.forEach(suministro => {
+                        const fila = document.createElement("tr");
+                        fila.innerHTML = `
+                    <td>${suministro.surtidor.nombre}</td>
+                    <td>${suministro.combustible.nombre}</td>
+                    <td>${suministro.cantidadLitros}L</td>
+                    <td>€${suministro.importe.toFixed(2)}</td>
+                    <td>${new Date(suministro.fecha).toLocaleString()}</td>`;
+                        tabla.appendChild(fila);
+                    });
+
+                    const botonReporte = document.getElementById("reporteBtn");
+                    if (data.length >= 25) {
+                        botonReporte.classList.remove("disabled");
+                        botonReporte.removeAttribute("disabled");
+                    } else {
+                        botonReporte.classList.add("disabled");
+                        botonReporte.setAttribute("disabled", true);
+                    }
+                })
+                .catch(error => console.error("Error al cargar suministros:", error));
+        }
+
+        function eliminarSuministro(id) {
+                if (!confirm("¿Estás seguro de que deseas eliminar este suministro?")) return;
+
+                fetch(`${API_SUMINISTROS}/${id}`, {
+                    method: "DELETE"
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error("No se pudo eliminar el suministro.");
+                        }
+                        alert("✅ Suministro eliminado con éxito.");
+                        cargarSuministros();  // Recargar la tabla después de eliminar
+                    })
+                    .catch(error => console.error("Error al eliminar suministro:", error));
+            }
+
+        function generarReporte() {
+                fetch(`${API_SUMINISTROS}/reporte`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const reporteDiv = document.getElementById("reporteDatos");
+
+                        // Formatear litros vendidos
+                        let litrosVendidosHTML = "<ul>";
+                        for (const [combustible, litros] of Object.entries(data.litrosVendidosPorCombustible)) {
+                            litrosVendidosHTML += `<li><b>${combustible}:</b> ${litros} L</li>`;
+                        }
+                        litrosVendidosHTML += "</ul>";
+
+                        // Formatear importe facturado
+                        let importeFacturadoHTML = "<ul>";
+                        for (const [combustible, importe] of Object.entries(data.importeFacturadoPorCombustible)) {
+                            importeFacturadoHTML += `<li><b>${combustible}:</b> €${importe.toFixed(2)}</li>`;
+                        }
+                        importeFacturadoHTML += "</ul>";
+
+                        // Formatear litros restantes en tanques
+                        let litrosRestantesHTML = "<ul>";
+                        for (const [combustible, litros] of Object.entries(data.litrosRestantesPorTanque)) {
+                            litrosRestantesHTML += `<li><b>${combustible}:</b> ${litros} L restantes</li>`;
+                        }
+                        litrosRestantesHTML += "</ul>";
+
+                        // Mostrar datos en la interfaz con mejor formato
+                        reporteDiv.innerHTML = `
+                <h4>📊 Reporte de Suministros</h4>
+                <p><b>Litros Vendidos:</b></p> ${litrosVendidosHTML}
+                <p><b>Importe Facturado:</b></p> ${importeFacturadoHTML}
+                <p><b>Total Facturado:</b> €${data.totalFacturado.toFixed(2)}</p>
+                <p><b>Litros Restantes en Tanques:</b></p> ${litrosRestantesHTML}
+            `;
+                    })
+                    .catch(error => console.error("Error al generar reporte:", error));
+            }
+
+    </script>
+
+</body>
+
+</html>

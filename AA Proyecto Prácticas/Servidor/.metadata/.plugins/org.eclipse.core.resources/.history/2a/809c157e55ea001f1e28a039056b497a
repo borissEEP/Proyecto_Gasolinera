@@ -1,0 +1,146 @@
+package com.gasolinera.controllers;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.gasolinera.clases.Combustible;
+import com.gasolinera.clases.Suministro;
+import com.gasolinera.clases.Surtidor;
+import com.gasolinera.clases.Tanque;
+import com.gasolinera.repository.CombustibleRepository;
+import com.gasolinera.repository.SuministroRepository;
+import com.gasolinera.repository.SurtidorRepository;
+import com.gasolinera.repository.TanqueRepository;
+
+@CrossOrigin(origins = "*")
+@RestController
+@RequestMapping("/suministros")
+public class SuministroController {
+
+    private final SuministroRepository suministroRepository;
+    private final SurtidorRepository surtidorRepository;
+    private final CombustibleRepository combustibleRepository;
+    private final TanqueRepository tanqueRepository;
+    
+    private SuministroController(SuministroRepository suministroRepository,
+    		SurtidorRepository surtidorRepository, CombustibleRepository combustibleRepository,
+    		TanqueRepository tanqueRepository) {
+    	
+    	this.suministroRepository = suministroRepository;
+    	this.surtidorRepository = surtidorRepository;
+    	this.combustibleRepository = combustibleRepository;
+    	this.tanqueRepository = tanqueRepository;
+    }
+    
+    @PostMapping
+    public ResponseEntity<String> registrarSuministro(@RequestBody Suministro nuevoSuministro) {
+        // 1️⃣ Verificar si el surtidor existe
+        Optional<Surtidor> surtidorOptional = surtidorRepository.findById(nuevoSuministro.getSurtidor().getId());
+        if (surtidorOptional.isEmpty()) {
+            return ResponseEntity.badRequest().body("❌ El surtidor no existe.");
+        }
+        Surtidor surtidor = surtidorOptional.get();
+
+        // 2️⃣ Verificar si el combustible existe
+        Optional<Combustible> combustibleOptional = combustibleRepository.findById(nuevoSuministro.getCombustible().getId());
+        if (combustibleOptional.isEmpty()) {
+            return ResponseEntity.badRequest().body("❌ El combustible no existe.");
+        }
+        Combustible combustible = combustibleOptional.get();
+
+        // 3️⃣ Verificar si el surtidor tiene ese combustible
+        boolean tieneCombustible = surtidor.getCombustibles().stream()
+                .anyMatch(c -> c.getId().equals(combustible.getId()));
+
+        if (!tieneCombustible) {
+            return ResponseEntity.badRequest().body("⛔ Este surtidor NO DISPONE de este combustible.");
+        }
+
+        // 4️⃣ Registrar el suministro
+        nuevoSuministro.setFecha(LocalDateTime.now());
+        suministroRepository.save(nuevoSuministro);
+
+        return ResponseEntity.ok("✅ Suministro registrado correctamente.");
+    }
+
+    
+    @GetMapping
+    private List<Suministro> getAllSuministros() {
+        return suministroRepository.findAll();
+    }
+    
+    @GetMapping("/reporte")
+    private ResponseEntity<?> generarReporte() {
+        List<Suministro> suministros = suministroRepository.findAll();
+
+        if (suministros.size() < 25) {
+            return ResponseEntity.badRequest().body(null);
+        }
+
+        // 🔹 Mapas para almacenar los datos por tipo de combustible
+        Map<String, Double> litrosVendidosPorCombustible = new HashMap<>();
+        Map<String, Double> importeFacturadoPorCombustible = new HashMap<>();
+        double totalFacturado = 0.0;
+
+        // 🔹 Obtener litros restantes en cada tanque
+        List<Tanque> tanques = tanqueRepository.findAll();
+        Map<String, Double> litrosRestantesPorTanque = new HashMap<>();
+        for (Tanque tanque : tanques) {
+            litrosRestantesPorTanque.put(tanque.getCombustible().getNombre(), tanque.getLitrosActuales());
+        }
+
+        // 🔹 Recorrer los suministros y calcular los totales
+        for (Suministro suministro : suministros) {
+            String combustibleNombre = suministro.getCombustible().getNombre();
+            double litros = suministro.getCantidadLitros();
+            double importe = suministro.getImporte();
+
+            litrosVendidosPorCombustible.put(combustibleNombre, 
+                litrosVendidosPorCombustible.getOrDefault(combustibleNombre, 0.0) + litros);
+
+            importeFacturadoPorCombustible.put(combustibleNombre, 
+                importeFacturadoPorCombustible.getOrDefault(combustibleNombre, 0.0) + importe);
+
+            totalFacturado += importe;
+
+            // Restamos los litros servidos del tanque correspondiente
+            if (litrosRestantesPorTanque.containsKey(combustibleNombre)) {
+                litrosRestantesPorTanque.put(combustibleNombre, litrosRestantesPorTanque.get(combustibleNombre) - litros);
+            }
+        }
+
+        // Construimos una respuesta JSON con los datos
+        Map<String, Object> reporte = new HashMap<>();
+        reporte.put("litrosVendidosPorCombustible", litrosVendidosPorCombustible);
+        reporte.put("importeFacturadoPorCombustible", importeFacturadoPorCombustible);
+        reporte.put("totalFacturado", totalFacturado);
+        reporte.put("litrosRestantesPorTanque", litrosRestantesPorTanque);
+
+        return ResponseEntity.ok(reporte);
+    }
+
+    
+    
+    @DeleteMapping("/{id}")
+    private ResponseEntity<Void> borrarSuministro(@PathVariable Integer id) {
+		if (!suministroRepository.existsById(id)) {
+			return ResponseEntity.notFound().build();
+		}
+		suministroRepository.deleteById(id);
+		return ResponseEntity.noContent().build();
+	}
+    
+}

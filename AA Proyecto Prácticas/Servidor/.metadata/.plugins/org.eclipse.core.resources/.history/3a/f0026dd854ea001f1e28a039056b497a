@@ -1,0 +1,35 @@
+package com.gasolinera.clases;
+
+import jakarta.persistence.*;
+import java.math.BigDecimal;
+
+@Entity
+public class Combustible {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Enumerated(EnumType.STRING)
+    private TipoCombustible nombre;
+
+    private BigDecimal precio;
+
+    @OneToOne(mappedBy = "combustible", cascade = CascadeType.ALL)
+    private Tanque tanque;
+
+    // Constructor vacío
+    public Combustible() {}
+
+    // Getters y Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public TipoCombustible getNombre() { return nombre; }
+    public void setNombre(TipoCombustible nombre) { this.nombre = nombre; }
+
+    public BigDecimal getPrecio() { return precio; }
+    public void setPrecio(BigDecimal precio) { this.precio = precio; }
+
+    public Tanque getTanque() { return tanque; }
+    public void setTanque(Tanque tanque) { this.tanque = tanque; }
+}

@@ -1,0 +1,61 @@
+package com.gasolinera.clases;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+
+@Entity
+@Table(name = "surtidor")
+public class Surtidor {
+
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+
+	private Integer id;
+	private String nombre;
+
+	@ManyToOne
+	@JoinColumn(name = "combustible_id", nullable = false)
+	private Combustible combustible;
+
+	public Surtidor() {
+	}
+
+	public Surtidor(String nombre, Combustible combustible) {
+		this.nombre = nombre;
+		this.combustible = combustible;
+	}
+
+	public Integer getId() {
+		return id;
+	}
+
+	public void setId(Integer id) {
+		this.id = id;
+	}
+
+	public String getNombre() {
+		return nombre;
+	}
+
+	public void setNombre(String nombre) {
+		this.nombre = nombre;
+	}
+
+	public Combustible getCombustible() {
+		return combustible;
+	}
+
+	public void setCombustible(Combustible combustible) {
+		this.combustible = combustible;
+	}
+	
+	public Double getPrecioCombustible() {
+        return combustible != null ? combustible.getPrecio() : null;
+    }
+
+}

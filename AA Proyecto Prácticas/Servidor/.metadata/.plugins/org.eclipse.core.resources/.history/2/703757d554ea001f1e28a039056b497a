@@ -1,0 +1,31 @@
+package com.gasolinera.clases;
+
+import jakarta.persistence.*;
+
+@Entity
+public class SurtidorCombustible {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "surtidor_id")
+    private Surtidor surtidor;
+
+    @ManyToOne
+    @JoinColumn(name = "combustible_id")
+    private Combustible combustible;
+
+    // Constructor vacío
+    public SurtidorCombustible() {}
+
+    // Getters y Setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public Surtidor getSurtidor() { return surtidor; }
+    public void setSurtidor(Surtidor surtidor) { this.surtidor = surtidor; }
+
+    public Combustible getCombustible() { return combustible; }
+    public void setCombustible(Combustible combustible) { this.combustible = combustible; }
+}

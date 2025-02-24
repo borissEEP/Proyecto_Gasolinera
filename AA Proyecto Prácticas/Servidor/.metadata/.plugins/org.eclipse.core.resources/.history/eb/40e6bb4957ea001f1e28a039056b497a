@@ -1,0 +1,58 @@
+package com.gasolinera.controllers;
+
+import com.gasolinera.clases.Surtidor;
+import com.gasolinera.repository.SurtidorRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.Optional;
+
+@RestController
+@RequestMapping("/surtidores")
+public class SurtidorController {
+
+    @Autowired
+    private SurtidorRepository surtidorRepository;
+
+    // Obtener todos los surtidores
+    @GetMapping
+    public List<Surtidor> getAllSurtidores() {
+        return surtidorRepository.findAll();
+    }
+
+    // Obtener un surtidor por ID
+    @GetMapping("/{id}")
+    public ResponseEntity<Surtidor> getSurtidorById(@PathVariable Long id) {
+        Optional<Surtidor> surtidor = surtidorRepository.findById(id);
+        return surtidor.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // Crear un nuevo surtidor
+    @PostMapping
+    public Surtidor createSurtidor(@RequestBody Surtidor surtidor) {
+        return surtidorRepository.save(surtidor);
+    }
+
+    // Actualizar un surtidor existente
+    @PutMapping("/{id}")
+    public ResponseEntity<Surtidor> updateSurtidor(@PathVariable Long id, @RequestBody Surtidor surtidorDetails) {
+        return surtidorRepository.findById(id).map(surtidor -> {
+            surtidor.setNombre(surtidorDetails.getNombre());
+            surtidor.setActivo(surtidorDetails.isActivo());
+            surtidorRepository.save(surtidor);
+            return ResponseEntity.ok(surtidor);
+        }).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // Eliminar un surtidor
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteSurtidor(@PathVariable Long id) {
+        if (surtidorRepository.existsById(id)) {
+            surtidorRepository.deleteById(id);
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.notFound().build();
+    }
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="icono gas.png">
+    <link rel="stylesheet" href="combustibles.css">
+    <title>Precios de Combustibles</title>
+</head>
+
+<body>
+
+    <h2>Lista de Combustibles</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Precio (€)</th>
+            </tr>
+        </thead>
+        <tbody id="tablaCombustibles"></tbody>
+    </table>
+
+    <a href="index.html">Ver Surtidores</a>
+
+    <script>
+        const API_COMBUSTIBLES = "http://localhost:8080/combustibles";
+
+        document.addEventListener("DOMContentLoaded", () => {
+            cargarCombustibles();
+        });
+
+        function cargarCombustibles() {
+            fetch(API_COMBUSTIBLES)
+                .then(response => response.json())
+                .then(data => {
+                    const tabla = document.getElementById("tablaCombustibles");
+                    tabla.innerHTML = ""; // Limpiar contenido anterior
+
+                    data.forEach(combustible => {
+                        const fila = document.createElement("tr");
+                        fila.innerHTML = `
+                            <td>${combustible.nombre}</td>
+                            <td>€${combustible.precio.toFixed(2)}</td>
+                        `;
+                        tabla.appendChild(fila);
+                    });
+                })
+                .catch(error => console.error("Error al cargar los combustibles:", error));
+        }
+    </script>
+
+</body>
+
+</html>
